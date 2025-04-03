@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Clients - Solution Automatisée</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text: #1e293b;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--background);
+            min-height: 100vh;
+            padding: 2rem;
+            display: grid;
+            place-items: center;
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        .container {
+            background: var(--surface);
+            width: 100%;
+            max-width: 640px;
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        h2 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        .form-section {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--muted);
+            margin-bottom: 0.5rem;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            outline: none;
+        }
+
+        .adresse-display {
+            padding: 1rem;
+            background: #f1f5f9;
+            border-radius: 0.75rem;
+            margin: 1rem 0;
+            font-weight: 500;
+            color: var(--primary);
+            border: 2px dashed var(--border);
+            display: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary), #4f46e5);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .notification {
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin: 1rem 0;
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .success {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .loading {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .grid-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        @media (max-width: 640px) {
+            .grid-form {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Gestion des Clients Automatisée</h2>
+        
+        <div class="form-section">
+            <label for="client">Sélection du Client</label>
+            <select id="client" onchange="afficherAdresse()">
+                <option value="">-- Choisissez un client --</option>
+                <!-- Chargé dynamiquement depuis Google Sheets -->
+            </select>
+            <div id="adresse" class="adresse-display"></div>
+        </div>
+
+        <div class="grid-form">
+            <div class="form-section">
+                <label for="numeroCC">📦 Numéro CC</label>
+                <input type="text" id="numeroCC" required placeholder="Entrez le numéro" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            </div>
+
+            <div class="form-section">
+                <label for="poids">⚖️ Poids (kg)</label>
+                <input type="number" id="poids" required placeholder="0" step="0.1" min="0">
+            </div>
+
+            <div class="form-section">
+                <label for="colisage">📎 Colisage</label>
+                <input type="number" id="colisage" required placeholder="Nombre" min="1">
+            </div>
+
+            <div class="form-section">
+                <label for="type">📦 Type</label>
+                <select id="type" required>
+                    <option value="">-- Sélectionnez --</option>
+                    <option value="Palette">Palette</option>
+                    <option value="Colis">Colis</option>
+                </select>
+            </div>
+
+            <div class="form-section">
+                <label for="quantite">🔢 Quantité</label>
+                <input type="number" id="quantite" required placeholder="0" min="1">
+            </div>
+        </div>
+
+        <button onclick="envoyerCommande()" id="submit-btn">Valider et Envoyer Automatiquement</button>
+        
+        <div id="notification" class="notification"></div>
+    </div>
+
+    <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+    <script>
+        // Initialisation d'EmailJS avec la clé publique
+        emailjs.init("G-UcWqhxzyexIG88U");
+
+        // Fonction pour afficher l'adresse du client sélectionné
+        function afficherAdresse() {
+            const clientSelect = document.getElementById("client");
+            const adresseDisplay = document.getElementById("adresse");
+            const selectedOption = clientSelect.options[clientSelect.selectedIndex];
+
+            if (selectedOption.value) {
+                adresseDisplay.textContent = `📍 ${selectedOption.value}`;
+                adresseDisplay.style.display = "block";
+            } else {
+                adresseDisplay.style.display = "none";
+            }
+        }
+
+        // Valider le formulaire avant envoi
+        function validerFormulaire() {
+            let isValid = true;
+            document.querySelectorAll("[required]").forEach(input => {
+                if (!input.value.trim()) {
+                    input.style.borderColor = "#dc2626";
+                    isValid = false;
+                } else {
+                    input.style.borderColor = "#e2e8f0";
+                }
+            });
+            return isValid;
+        }
+
+        // Fonction d'envoi du formulaire
+        async function envoyerCommande() {
+            if (!validerFormulaire()) return;
+            const submitBtn = document.getElementById("submit-btn");
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Envoi en cours...";
+
+            const clientSelect = document.getElementById("client");
+            const selectedOption = clientSelect.options[clientSelect.selectedIndex];
+            const payload = {
+                client: {
+                    nom: selectedOption.text,
+                    adresse: selectedOption.value
+                },
+                commande: {
+                    numeroCC: document.getElementById("numeroCC").value,
+                    poids: parseFloat(document.getElementById("poids").value),
+                    colisage: parseInt(document.getElementById("colisage").value),
+                    type: document.getElementById("type").value,
+                    quantite: parseInt(document.getElementById("quantite").value)
+                }
+            };
+
+            try {
+                // Envoi de l'email via EmailJS
+                const response = await emailjs.send("service_id", "template_id", payload);
+                if (response.status === 200) {
+                    alert("Commande envoyée avec succès!");
+                } else {
+                    alert("Erreur d'envoi de la commande.");
+                }
+            } catch (error) {
+                console.error("Erreur d'envoi:", error);
+                alert("Erreur d'envoi. Veuillez réessayer.");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Valider et Envoyer Automatiquement";
+            }
+        }
+    </script>
+</body>
+</html>
